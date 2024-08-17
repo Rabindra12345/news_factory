@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.pironews.piropironews.dtos.ApiResponse;
 import com.pironews.piropironews.jwt.JwtUtils;
 import com.pironews.piropironews.model.ERole;
 import com.pironews.piropironews.model.RefreshToken;
@@ -25,6 +27,7 @@ import com.pironews.piropironews.repository.UserRepository;
 import com.pironews.piropironews.service.RefreshTokenService;
 import com.pironews.piropironews.service.UserDetailsServiceImpl;
 import com.pironews.piropironews.service.UserServiceImpl;
+//import io.swagger.v3.oas.models.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -78,10 +81,10 @@ public class AuthController {
     private RefreshTokenService refreshTokenService;
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public ResponseEntity<ApiResponse<?>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
             JwtResponse jwtResponse = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
 //            System.out.println("LOGGING USER USING PRINCIPLE _____________++++++++++++++++:" +jwtResponse.toString());
-            return ResponseEntity.ok("");
+            return ResponseEntity.ok(ApiResponse.getBody(jwtResponse));
     }
 //        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 //        List<String> roles = userDetails.getAuthorities().stream()
@@ -137,15 +140,16 @@ public class AuthController {
         // Create new user's account
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
+                signUpRequest.getPassword());
 
         Set<String> strRoles = signUpRequest.getRole();
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            System.out.println("ROLE IS NULL ________________________________________"+signUpRequest.getRole());
+            System.out.println("ROLE IS NULL ________________________________________123"+signUpRequest.getRole());
             Role role = new Role();
             role.setName(ERole.ROLE_USER);
+            roles.add(role);
         } else {
             System.out.println("ROLE IS NULL ________________________________________");
             strRoles.forEach(role -> {
@@ -172,7 +176,7 @@ public class AuthController {
                 }
             });
         }
-
+        System.out.println("logging roles :"+roles);
         user.setRoles(roles);
         User savedUser =userService.addUser(user);
 

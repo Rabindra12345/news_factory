@@ -2,6 +2,8 @@ package com.pironews.piropironews.model;
 
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,6 +35,8 @@ public class User {
     @Email
     private String email;
 
+    private LocalDateTime dateTime;
+
     @Column(name = "salt",columnDefinition = "TEXT")
     private String salt;
 
@@ -53,9 +57,9 @@ public class User {
     @Column(name="cover_photo_url", nullable=true)
     private String coverPicUrl;
 
-    public User(String username, String email, String encode) {
+    public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
-        this.password = encode;
+        this.password = password;
     }
 }

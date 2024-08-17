@@ -9,18 +9,11 @@ import com.pironews.piropironews.repository.RoleRepository;
 import com.pironews.piropironews.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -62,36 +55,54 @@ public class UserServiceImpl {
         }
 
         String salt = userFromDb.get().getSalt();
-        if (!verifyPassword(password, salt, userFromDb.get().getPassword())) {
-            throw new UsernameNotFoundException("Invalid username or password");
+//        System.out.println("Salt used for hashing: " + salt);
+        System.out.println("Salt during login: " + salt);
+        System.out.println("Concatenated string during login:" + password +""+ salt);
+
+        // Hash the provided password with the stored salt
+        String hashedPassword = encryptString(password+salt);
+
+        System.out.println("Hashed password during login: " + hashedPassword);
+        System.out.println("Stored hashed password: " + userFromDb.get().getPassword());
+
+        // Compare the hashed password with the stored hashed password
+        if (!userFromDb.get().getPassword().equals(hashedPassword)) {
+            throw new UsernameNotFoundException("Invalid password for username: " + username);
         }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String jwt = jwtUtils.generateJwtToken(authentication);
+        String jwt = jwtUtils.generateJwtToken(userFromDb.get());
+        System.out.println("LOGGING JWT."+jwt);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(username);
+        System.out.println("LOGGING refresh token"+refreshToken);
+        System.out.println("LOGGING  token only"+refreshToken.getToken());
+//        System.out.println("LOGGING access token"+refreshToken.getAccessToken());
 
         JwtResponse jwtResponse = JwtResponse.builder()
                 .accessToken(jwt)
                 .roles(userFromDb.get().getRoles().stream().collect(Collectors.toList()))
                 .token(refreshToken.getToken())
                 .build();
+        System.out.println("LOGGING JWT RESPONSE."+jwtResponse);
 
         return jwtResponse;
     }
 
     @Transactional
-    public User addUser(User user) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public User addUser(User user) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null");
         }
+        System.out.println("password used for sign up :"+user.getPassword());
+        String salt = UUID.randomUUID().toString();
+        System.out.println("Salt during signup: " + salt);
+        System.out.println("Concatenated string during signup: " + user.getPassword() + salt);
 
-        String salt = generateSalt();
-        String hashedPassword = hashPassword(user.getPassword(), salt);
+        String hashedPassword = encryptString(user.getPassword()+salt);
+
+        System.out.println("pwd _____________ ::::::::::: "+hashedPassword);
+
         user.setPassword(hashedPassword);
+        user.setDateTime(LocalDateTime.now());
         user.setSalt(salt);
 
         Set<Role> rolesToSet = new HashSet<>();
@@ -106,55 +117,24 @@ public class UserServiceImpl {
         return user;
     }
 
-//    public static String encryptString(String password,String salt) throws InvalidKeySpecException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-//        byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-//        IvParameterSpec ivspec = new IvParameterSpec(iv);
-//        /* Create factory for secret keys. */
-//        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-//        /* PBEKeySpec class implements KeySpec interface. */
-//        KeySpec spec = new PBEKeySpec(jwtSecret.toCharArray(), salt.getBytes(), 65536, 256);
-//        SecretKey tmp = factory.generateSecret(spec);
-//        SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
-//        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-//        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec);
-//        /* Retruns encrypted value. */
-//        return Base64.getEncoder()
-//                .encodeToString(cipher.doFinal(password.getBytes(StandardCharsets.UTF_8)));
-//    }
-//
-//    public static String decryptString(String password) throws InvalidKeySpecException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-//        byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-//        IvParameterSpec ivspec = new IvParameterSpec(iv);
-//        /* Create factory for secret keys. */
-//        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-//        /* PBEKeySpec class implements KeySpec interface. */
-//        KeySpec spec = new PBEKeySpec(jwtSecret.toCharArray(), password.getBytes(), 65536, 256);
-//        SecretKey tmp = factory.generateSecret(spec);
-//        SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
-//        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-//        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec);
-//        /* Retruns encrypted value. */
-//        return Base64.getEncoder()
-//                .encodeToString(cipher.doFinal(password.getBytes(StandardCharsets.UTF_8)));
-//    }
-public static String hashPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
-    byte[] saltBytes = salt.getBytes(StandardCharsets.UTF_8);
+    public static String encryptString(String originalString) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        final MessageDigest digest = MessageDigest.getInstance("SHA3-256");
+        final byte[] hashbytes = digest.digest(
+                originalString.getBytes(StandardCharsets.UTF_8));
+        String sha3Hex = bytesToHex(hashbytes);
 
-    KeySpec spec = new PBEKeySpec(password.toCharArray(), saltBytes, 65536, 256);
-    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-    byte[] hash = factory.generateSecret(spec).getEncoded();
-
-    return Base64.getEncoder().encodeToString(hash);
-}
-
-    public static boolean verifyPassword(String password, String salt, String hashedPassword) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String hashedAttempt = hashPassword(password, salt);
-        return hashedAttempt.equals(hashedPassword);
+        return sha3Hex;
     }
 
-    public static String generateSalt() throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] salt = md.digest(jwtSecret.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(salt);
+    private static String bytesToHex(byte[] hash) {
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (int i = 0; i < hash.length; i++) {
+            String hex = Integer.toHexString(0xff & hash[i]);
+            if(hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 }

@@ -27,15 +27,16 @@ public class JwtUtils {
     @Value("${baldur.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    public String generateJwtToken(Authentication authentication) {
+    public String generateJwtToken(User authentication) {
 
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+//        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+
         LocalDateTime tokenExpirationTime = LocalDateTime.now().plusSeconds(120);
 //        Date currentTimeInDate = Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant());
 
         Date tokenExpirationTimeInDate = Date.from(tokenExpirationTime.atZone(ZoneId.systemDefault()).toInstant());
         return Jwts.builder()
-                .setSubject((userPrincipal.getUsername()))
+                .setSubject((authentication.getUsername()))
                 .setIssuedAt(new Date())
                 .setExpiration(tokenExpirationTimeInDate)
                 .signWith(key(), SignatureAlgorithm.HS256)
