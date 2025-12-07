@@ -1,26 +1,19 @@
 package com.pironews.piropironews.service;
 
 
-
 import com.pironews.piropironews.model.RefreshToken;
 import com.pironews.piropironews.repository.RefreshTokenRepository;
 import com.pironews.piropironews.repository.UserRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.security.Key;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,13 +34,18 @@ public class RefreshTokenService {
     @Autowired
     SingleSessionLoginService singleSessionLoginService;
 
+
+
+    @Transactional
     public RefreshToken createRefreshToken(String username){
+        var mayBeUser = this.userRepository.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("User not found"));
+        refreshTokenRepository.findByUserInfo(mayBeUser).ifPresent(refreshTokenRepository::delete);
+        this.refreshTokenRepository.deleteLinksByUserId(mayBeUser.getId());
         RefreshToken refreshToken = RefreshToken.builder()
                 .userInfo(userRepository.findByUsername(username).get())
                 .token(UUID.randomUUID().toString())
-                .expiryDate(LocalDateTime.now().plusMinutes(300)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
+                .expiryDate(LocalDateTime.now().plusMinutes(3)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
                 .build();
-        refreshTokenRepository.deleteAll();
         return refreshTokenRepository.save(refreshToken);
     }
 

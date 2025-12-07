@@ -82,21 +82,10 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<ApiResponse<?>> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeySpecException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-            JwtResponse jwtResponse = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
-//            System.out.println("LOGGING USER USING PRINCIPLE _____________++++++++++++++++:" +jwtResponse.toString());
+        JwtResponse jwtResponse = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
             return ResponseEntity.ok(ApiResponse.getBody(jwtResponse));
     }
-//        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-//        List<String> roles = userDetails.getAuthorities().stream()
-//                .map(item -> item.getAuthority())
-//                .collect(Collectors.toList());
 
-//        return ResponseEntity.ok(new JwtResponse(jwt,
-////                userDetails.getId(),
-////                userDetails.getUsername(),
-////                userDetails.getEmail(),
-//                refreshToken));
-//    }
 
     @PostMapping(value = "/refresh",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAccessTokenUsingRefreshToken(@RequestBody RefreshTokenRequestRecord refreshTokenRequestRecord){
@@ -106,13 +95,7 @@ public class AuthController {
         }
         RefreshToken refreshTokenInstance = refreshTokenService.findByToken(refreshToken).get();
         if(refreshTokenService.verifyExpiration(refreshTokenInstance)){
-//            Authentication authentication = authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-//            System.out.println("PRINTING_______________________________________________________________________ :"+authentication.toString());
-//            SecurityContextHolder.getContext().setAuthentication(authentication);
-
             String newAccessToken = jwtUtils.generateJwtTokenWithUserInfo(refreshTokenInstance.getUserInfo());
-
             return ResponseEntity.ok(JwtResponse.builder()
                     .accessToken(newAccessToken)
                     .token(refreshTokenRequestRecord.token())
@@ -137,7 +120,6 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        // Create new user's account
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
                 signUpRequest.getPassword());
@@ -146,12 +128,10 @@ public class AuthController {
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            System.out.println("ROLE IS NULL ________________________________________123"+signUpRequest.getRole());
             Role role = new Role();
             role.setName(ERole.ROLE_USER);
             roles.add(role);
         } else {
-            System.out.println("ROLE IS NULL ________________________________________");
             strRoles.forEach(role -> {
                 switch (role) {
                     case "admin":
@@ -186,10 +166,8 @@ public class AuthController {
 
     @GetMapping("/current-user")
     public ResponseEntity<UserDetails> getCurrentLoggedInUserDetails(Principal principal){
-
         logger.info("PRINTING CURRENTLY LOGGED IN USER__time changed.");
         UserDetails user =  userDetailsService.loadUserByUsername(principal.getName());
-
         return ResponseEntity.ok(user);
     }
 }

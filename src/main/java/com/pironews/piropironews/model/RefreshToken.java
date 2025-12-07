@@ -18,8 +18,10 @@ public class RefreshToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column(name = "token", columnDefinition = "TEXT")
     private String token;
+
     private LocalDateTime expiryDate;
 
     @OneToOne

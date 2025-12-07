@@ -31,7 +31,7 @@ public class JwtUtils {
 
 //        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
-        LocalDateTime tokenExpirationTime = LocalDateTime.now().plusSeconds(120);
+        LocalDateTime tokenExpirationTime = LocalDateTime.now().plusSeconds(300);
 //        Date currentTimeInDate = Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant());
 
         Date tokenExpirationTimeInDate = Date.from(tokenExpirationTime.atZone(ZoneId.systemDefault()).toInstant());
@@ -72,7 +72,7 @@ public class JwtUtils {
     public String generateJwtTokenWithUserInfo(User user) {
 
 //        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-        LocalDateTime tokenExpirationTime = LocalDateTime.now().plusSeconds(120);
+        LocalDateTime tokenExpirationTime = LocalDateTime.now().plusSeconds(300);
 //        Date currentTimeInDate = Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant());
 
         Date tokenExpirationTimeInDate = Date.from(tokenExpirationTime.atZone(ZoneId.systemDefault()).toInstant());

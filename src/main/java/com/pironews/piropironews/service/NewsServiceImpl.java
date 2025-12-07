@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Service
 public class NewsServiceImpl {
 
-    public final static String IMAGE_PATH="/home/rabindra-jar/Videos/saveFromBlogPost/";
+    public final static String IMAGE_PATH="/home/ct/Pictures/newsBlog/";
 
     @Autowired
     private NewsRepository newsRepository;
@@ -62,17 +62,22 @@ public class NewsServiceImpl {
             }
         }
         newsPost.setImages(imageList);
-        Category category = new Category();
-        var cat_list = new ArrayList<Category>();
+        var filteredCatList = new ArrayList<Category>();
         if(newsCategories!=null){
             for(String newsCategory: newsCategories){
-                Category cat = new Category();
-                cat.setName(newsCategory);
-                cat_list.add(cat);
+                Optional<Category> getCategory =categoryRepository.getCategoryByName(newsCategory);
+                if(getCategory.isEmpty()){
+                    Category cat = new Category();
+                    cat.setName(newsCategory);
+                    filteredCatList.add(cat);
+                }
             }
         }
 //        category.setName(newsCategory);
-        newsPost.setNewsCategory(cat_list);
+
+        if(filteredCatList!=null&&filteredCatList.size()>0){
+            newsPost.setNewsCategory(filteredCatList);
+        }
         NewsPost savedNews = newsRepository.save(newsPost);
         return newsPost;
     }

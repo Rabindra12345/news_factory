@@ -12,8 +12,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @ToString
 @Table(name = "notification", indexes = {
-        @Index(name = "idx_read", columnList = "`read`", unique = false),
-        @Index(name = "idx_created", columnList = "created", unique = false),})
+        @Index(name = "idx_notification_read", columnList = "read"),
+        @Index(name = "idx_notification_created", columnList = "created")
+})
 public class Notification {
 
     @Id

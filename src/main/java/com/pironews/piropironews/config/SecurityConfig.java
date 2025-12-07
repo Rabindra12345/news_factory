@@ -69,11 +69,9 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .authorizeHttpRequests(auth ->
-//                        auth.requestMatchers("/api/auth/**","/swagger-ui/**").permitAll()
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(
-                                        "/api/auth/**"
+                                        "/api/auth/**","/public/**"
                                 ).permitAll()
                                 .requestMatchers(SWAGGER_WHITELIST_URLS).permitAll()
                                 .requestMatchers("/api/test/**").permitAll()

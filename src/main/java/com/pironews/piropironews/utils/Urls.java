@@ -8,7 +8,7 @@ public final class Urls {
 
     public static final String NEWS_READ_BY_CATEGORY="api/news/category/{categoryName}";
 
-    public static final String NEWS_READ_ALL="api/news";
+    public static final String NEWS_READ_ALL="public/api/news";
 
 
 
