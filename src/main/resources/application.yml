@@ -1,20 +1,17 @@
 server:
-  port: 8081
+  port: ${PORT:8080}
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/news_blog
-    username: root
-    password: password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/news_blog}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
 
   jpa:
     hibernate:
       ddl-auto: update
     generate-ddl: true
     show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   servlet:
     multipart:
@@ -24,10 +21,11 @@ spring:
 
   security:
     user:
-      name: admin
-      password: admin@321!^*#
+      name: ${SPRING_SECURITY_USER_NAME:admin}
+      password: ${SPRING_SECURITY_USER_PASSWORD:admin@321!^*#}
       roles: ADMIN
+
 baldur:
   app:
-    jwtSecret: ======================rabindra=Spring===========================
-    jwtExpirationMs: 32000
+    jwtSecret: ${JWT_SECRET:======================rabindra=Spring===========================}
+    jwtExpirationMs: ${JWT_EXPIRATION_MS:32000}

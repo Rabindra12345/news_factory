@@ -5,12 +5,10 @@ import com.pironews.piropironews.entities.NewsPost;
 import com.pironews.piropironews.service.NewsServiceImpl;
 import com.pironews.piropironews.utils.Urls;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -35,7 +33,6 @@ public class NewsController {
 
     @GetMapping(value=Urls.NEWS_READ,produces = MediaType.APPLICATION_JSON_VALUE)
     public NewsPost getNewsByNewsId(@PathVariable String newsId){
-        System.out.println("INSDIE NEWS BY ID___________________________________");
         NewsPost news=newsService.fetchNewsWithId(newsId);
         return news;
     }

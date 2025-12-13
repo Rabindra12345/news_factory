@@ -1,6 +1,7 @@
 package com.pironews.piropironews.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -38,6 +39,7 @@ public class User {
     private LocalDateTime dateTime;
 
     @Column(name = "salt",columnDefinition = "TEXT")
+    @JsonIgnore
     private String salt;
 
 //    @Transient

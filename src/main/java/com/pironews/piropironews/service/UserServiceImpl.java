@@ -53,7 +53,6 @@ public class UserServiceImpl {
         if (userFromDb.isEmpty()) {
             throw new UsernameNotFoundException("User Not Found with username: " + username);
         }
-
         String salt = userFromDb.get().getSalt();
 //        System.out.println("Salt used for hashing: " + salt);
         System.out.println("Salt during login: " + salt);
@@ -92,14 +91,8 @@ public class UserServiceImpl {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null");
         }
-        System.out.println("password used for sign up :"+user.getPassword());
         String salt = UUID.randomUUID().toString();
-        System.out.println("Salt during signup: " + salt);
-        System.out.println("Concatenated string during signup: " + user.getPassword() + salt);
-
         String hashedPassword = encryptString(user.getPassword()+salt);
-
-        System.out.println("pwd _____________ ::::::::::: "+hashedPassword);
 
         user.setPassword(hashedPassword);
         user.setDateTime(LocalDateTime.now());
