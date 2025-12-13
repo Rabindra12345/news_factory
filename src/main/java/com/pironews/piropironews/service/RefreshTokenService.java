@@ -39,12 +39,11 @@ public class RefreshTokenService {
     @Transactional
     public RefreshToken createRefreshToken(String username){
         var mayBeUser = this.userRepository.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("User not found"));
-        refreshTokenRepository.findByUserInfo(mayBeUser).ifPresent(refreshTokenRepository::delete);
         this.refreshTokenRepository.deleteLinksByUserId(mayBeUser.getId());
         RefreshToken refreshToken = RefreshToken.builder()
                 .userInfo(userRepository.findByUsername(username).get())
                 .token(UUID.randomUUID().toString())
-                .expiryDate(LocalDateTime.now().plusMinutes(3)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
+                .expiryDate(LocalDateTime.now().plusMinutes(5)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
                 .build();
         return refreshTokenRepository.save(refreshToken);
     }

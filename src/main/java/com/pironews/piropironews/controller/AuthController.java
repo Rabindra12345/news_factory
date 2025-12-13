@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.pironews.piropironews.dtos.ApiResponse;
@@ -22,6 +23,7 @@ import com.pironews.piropironews.payload.request.SignUpRequest;
 import com.pironews.piropironews.payload.response.JwtResponse;
 import com.pironews.piropironews.payload.response.MessageResponse;
 import com.pironews.piropironews.payload.response.RefreshTokenRequestRecord;
+import com.pironews.piropironews.repository.RefreshTokenRepository;
 import com.pironews.piropironews.repository.RoleRepository;
 import com.pironews.piropironews.repository.UserRepository;
 import com.pironews.piropironews.service.RefreshTokenService;
@@ -71,6 +73,10 @@ public class AuthController {
     @Autowired
     RoleRepository roleRepository;
 
+
+    @Autowired
+    RefreshTokenRepository refreshTokenRepository;
+
     @Autowired
     PasswordEncoder encoder;
 
@@ -94,6 +100,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Invalid refresh token"));
         }
         RefreshToken refreshTokenInstance = refreshTokenService.findByToken(refreshToken).get();
+        var mayBeUser = this.userRepository.findById(refreshTokenInstance.getUserInfo().getId());
+        this.refreshTokenRepository.deleteLinksByUserId(mayBeUser.get().getId());
+        RefreshToken toBeSavedRefreshToken = RefreshToken.builder()
+                .userInfo(userRepository.findByUsername(mayBeUser.get().getUsername()).get())
+                .token(refreshTokenRequestRecord.token())
+                .expiryDate(LocalDateTime.now().plusMinutes(2))
+                .build();
+        this.refreshTokenRepository.save(toBeSavedRefreshToken);
         if(refreshTokenService.verifyExpiration(refreshTokenInstance)){
             String newAccessToken = jwtUtils.generateJwtTokenWithUserInfo(refreshTokenInstance.getUserInfo());
             return ResponseEntity.ok(JwtResponse.builder()

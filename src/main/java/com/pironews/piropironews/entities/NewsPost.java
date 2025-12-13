@@ -2,6 +2,7 @@ package com.pironews.piropironews.entities;
 
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.pironews.piropironews.model.Category;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,10 @@ public class NewsPost {
 
     private LocalDateTime publishedDate;
 
+    private String category;
+
+    private Integer viewsCount;
+
     @JoinTable(
          name="news_category",
         joinColumns =  @JoinColumn(name="news_id"),
@@ -41,13 +46,15 @@ public class NewsPost {
     public NewsPost() {
     }
 
-    public NewsPost(LocalDateTime publishedDate, String textTitle, String textBody, String userId, String newsId) {
+    public NewsPost(LocalDateTime publishedDate, String textTitle, String textBody, String userId, String newsId,String category,Integer viewsCount) {
         this.publishedDate = publishedDate;
         this.textTitle = textTitle;
 //        this.imageUrl = imageUrl;
         this.textBody = textBody;
         this.userId = userId;
         this.newsId = newsId;
+        this.category = category;
+        this.viewsCount = viewsCount;
     }
 
     @Override
@@ -117,5 +124,21 @@ public class NewsPost {
 
     public void setNewsCategory(List<Category> newsCategory) {
         this.newsCategory = newsCategory;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public Integer getViewsCount() {
+        return viewsCount;
+    }
+
+    public void setViewsCount(Integer viewsCount) {
+        this.viewsCount = viewsCount;
     }
 }

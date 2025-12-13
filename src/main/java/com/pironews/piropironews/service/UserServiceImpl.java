@@ -54,28 +54,12 @@ public class UserServiceImpl {
             throw new UsernameNotFoundException("User Not Found with username: " + username);
         }
         String salt = userFromDb.get().getSalt();
-//        System.out.println("Salt used for hashing: " + salt);
-        System.out.println("Salt during login: " + salt);
-        System.out.println("Concatenated string during login:" + password +""+ salt);
-
-        // Hash the provided password with the stored salt
         String hashedPassword = encryptString(password+salt);
-
-        System.out.println("Hashed password during login: " + hashedPassword);
-        System.out.println("Stored hashed password: " + userFromDb.get().getPassword());
-
-        // Compare the hashed password with the stored hashed password
         if (!userFromDb.get().getPassword().equals(hashedPassword)) {
             throw new UsernameNotFoundException("Invalid password for username: " + username);
         }
-
         String jwt = jwtUtils.generateJwtToken(userFromDb.get());
-        System.out.println("LOGGING JWT."+jwt);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(username);
-        System.out.println("LOGGING refresh token"+refreshToken);
-        System.out.println("LOGGING  token only"+refreshToken.getToken());
-//        System.out.println("LOGGING access token"+refreshToken.getAccessToken());
-
         JwtResponse jwtResponse = JwtResponse.builder()
                 .accessToken(jwt)
                 .roles(userFromDb.get().getRoles().stream().collect(Collectors.toList()))
@@ -93,18 +77,15 @@ public class UserServiceImpl {
         }
         String salt = UUID.randomUUID().toString();
         String hashedPassword = encryptString(user.getPassword()+salt);
-
         user.setPassword(hashedPassword);
         user.setDateTime(LocalDateTime.now());
         user.setSalt(salt);
-
         Set<Role> rolesToSet = new HashSet<>();
         for (Role role : user.getRoles()) {
             Role existingRole = roleRepository.findByName(role.getName())
                     .orElseGet(() -> roleRepository.save(new Role(role.getName())));
             rolesToSet.add(existingRole);
         }
-
         user.setRoles(rolesToSet);
         userRepository.save(user);
         return user;

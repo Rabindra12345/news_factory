@@ -4,13 +4,10 @@ package com.pironews.piropironews.config;
 import com.pironews.piropironews.jwt.AuthEntryPointJwt;
 import com.pironews.piropironews.jwt.AuthTokenFilter;
 import com.pironews.piropironews.service.UserDetailsServiceImpl;
-//import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.LogManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -35,7 +32,10 @@ public class SecurityConfig {
             "swagger-ui/**",
             "/swagger-resources/**",
             "/swagger-resources",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "api/auth/signin",
+            "api/auth/signup",
+            "api/auth/refresh"
     };
 
     @Bean
@@ -63,23 +63,24 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+
+        http.cors(
+                cors -> {}) // ✅ enable CORS in the security chain
+                .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers(
+                                auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ allow preflight
+                         .requestMatchers(
                                         "/api/auth/**","/public/**"
                                 ).permitAll()
                                 .requestMatchers(SWAGGER_WHITELIST_URLS).permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .anyRequest().authenticated()
                 );
-
         http.authenticationProvider(authenticationProvider());
-
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

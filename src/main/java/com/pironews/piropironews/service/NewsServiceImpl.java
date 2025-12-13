@@ -1,27 +1,27 @@
 package com.pironews.piropironews.service;
 
 import com.pironews.piropironews.dtos.NewsAddDto;
-import com.pironews.piropironews.entities.Category;
 import com.pironews.piropironews.entities.Image;
 import com.pironews.piropironews.entities.NewsPost;
+import com.pironews.piropironews.model.Category;
 import com.pironews.piropironews.repositories.CategoryRepository;
 import com.pironews.piropironews.repositories.NewsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.NotActiveException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,8 +36,10 @@ public class NewsServiceImpl {
     private CategoryRepository categoryRepository;
 
     @Transactional
-    public NewsPost addNews(String title,String textBody,String userId,List<String> newsCategories,List<MultipartFile> images) throws IOException {
+    public NewsPost addNews(String title,String textBody,String userId,List<String> newsCategories,List<MultipartFile> images,Integer category) throws IOException {
         NewsPost newsPost = new NewsPost();
+        var mayBeCategory = categoryRepository.findById(category);
+        int viewsCount=0;
         String trimmed= "";
         newsPost.setTextTitle(title);
         textBody=textBody.replaceAll("&nbsp;"," ");
@@ -49,7 +51,6 @@ public class NewsServiceImpl {
         newsPost.setUserId(userId);
         List<Image> imageList = new ArrayList<>();
         newsPost.setNewsId(UUID.randomUUID().toString());
-        System.out.println("PRINTING IMAGE __________________"+images.size());
         if(images!=null){
             for(MultipartFile image: images){
 //                var news = new NewsPost();
@@ -78,15 +79,40 @@ public class NewsServiceImpl {
         if(filteredCatList!=null&&filteredCatList.size()>0){
             newsPost.setNewsCategory(filteredCatList);
         }
+        newsPost.setViewsCount(++viewsCount);
+        newsPost.setCategory(mayBeCategory.get().getName());
         NewsPost savedNews = newsRepository.save(newsPost);
         return newsPost;
     }
 
-    public NewsPost fetchNewsWithId(String newsId){
+    public NewsAddDto fetchNewsWithId(String newsId){
         Optional<NewsPost> newsPost = newsRepository.findById(newsId);
-
-        return newsPost.isPresent() ? newsPost.get() : new NewsPost();
+        if (newsPost.isPresent()) {
+            CompletableFuture.runAsync(() -> {
+                newsRepository.incrementViewCount(newsId);
+            });
+            return toNewsAddDto.apply(newsPost.get());
+        }
+        return new NewsAddDto();
     }
+
+    Function<NewsPost,NewsAddDto> toNewsAddDto = newsPost -> {
+        NewsAddDto newsAddDto = new NewsAddDto();
+        newsAddDto.setPublishedDate(newsPost.getPublishedDate());
+        newsAddDto.setTextBody(newsPost.getTextBody());
+        newsAddDto.setTextTitle(newsPost.getTextTitle());
+        newsAddDto.setImageUrl(newsPost.getImages().stream().map(image ->{
+            try {
+                String b64 = convertToBase64(readImageBytes(image.getImageUrl()));
+                return "data:image/jpeg;base64," + b64;
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read image: " + image.getImageUrl(), e);
+            }
+        }).toList());
+        newsAddDto.setUserId(newsPost.getUserId());
+        newsAddDto.setNewsId(newsPost.getNewsId());
+        return newsAddDto;
+    };
 
     public List<NewsAddDto> fetchAllNews() throws IOException {
         List<NewsPost> newsPosts = newsRepository.findAllByPublishedDateDesc();
@@ -131,7 +157,7 @@ public class NewsServiceImpl {
         return Base64.getEncoder().encodeToString(imageBytes);
     }
 
-    public byte[] readImageBytes(String imagePath) throws IOException {
+    public static byte[] readImageBytes(String imagePath) throws IOException {
         Path path = Paths.get(imagePath);
         if (!Files.exists(path)) {
             System.err.println("File not found: " + imagePath);

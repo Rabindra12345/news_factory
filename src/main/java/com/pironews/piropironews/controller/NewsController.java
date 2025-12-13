@@ -2,6 +2,8 @@ package com.pironews.piropironews.controller;
 
 import com.pironews.piropironews.dtos.NewsAddDto;
 import com.pironews.piropironews.entities.NewsPost;
+import com.pironews.piropironews.model.Category;
+import com.pironews.piropironews.service.CategoryServiceImpl;
 import com.pironews.piropironews.service.NewsServiceImpl;
 import com.pironews.piropironews.utils.Urls;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,21 +22,29 @@ public class NewsController {
     @Autowired
     private NewsServiceImpl newsService;
 
+    @Autowired
+    private CategoryServiceImpl categoryService;
+
     @PostMapping(value= Urls.CREATE_NEWS,produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createNews(
             @RequestParam("title") String title,
             @RequestParam("textBody") String textBody,
             @RequestParam("userId") String userId,
             @RequestParam(value = "newsCategories",required = false) List<String> newsCategories,
-            @RequestParam(value = "textImages",required = false) List<MultipartFile> textImages) throws IOException {
-        NewsPost news=newsService.addNews(title, textBody, userId,newsCategories, textImages);         
+            @RequestParam(value = "textImages",required = false) List<MultipartFile> textImages,@RequestParam("categoryId") Integer category) throws IOException {
+        NewsPost news=newsService.addNews(title, textBody, userId,newsCategories, textImages, category);
         return ResponseEntity.ok("Form submitted successfully");
     }
 
     @GetMapping(value=Urls.NEWS_READ,produces = MediaType.APPLICATION_JSON_VALUE)
-    public NewsPost getNewsByNewsId(@PathVariable String newsId){
-        NewsPost news=newsService.fetchNewsWithId(newsId);
+    public NewsAddDto getNewsByNewsId(@PathVariable String newsId){
+        var news=newsService.fetchNewsWithId(newsId);
         return news;
+    }
+
+    @GetMapping(value=Urls.NEWS_CATEGORIES,produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Category> getAllCategories() {
+        return categoryService.fetchAllCategories();
     }
 
     @GetMapping(value=Urls.NEWS_READ_ALL,produces = MediaType.APPLICATION_JSON_VALUE)
