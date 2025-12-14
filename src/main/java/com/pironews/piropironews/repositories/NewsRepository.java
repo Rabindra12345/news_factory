@@ -33,6 +33,21 @@ public interface NewsRepository extends JpaRepository<NewsPost,String> {
     """, nativeQuery = true)
     List<NewsPost> findAllPopularNewsPosts();
 
+
+    @Query(value = """
+        WITH entertained_posts AS (
+            SELECT DISTINCT nc.news_id
+            FROM news_category nc
+                JOIN category c ON c.id = nc.category_id
+            WHERE c.name = 'Entertainment'
+        )
+    SELECT np.*
+    FROM news_post np
+    JOIN entertained_posts ep ON ep.news_id = np.news_id
+    order by np.published_date desc LIMIT 5
+    """, nativeQuery = true)
+    List<NewsPost> findAllEntertainmentNewsPosts();
+
     @Modifying
     @Transactional
     @Query("UPDATE NewsPost n SET n.viewsCount = n.viewsCount + 1 WHERE n.newsId=:newsId")

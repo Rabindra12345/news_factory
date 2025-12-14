@@ -90,6 +90,16 @@ public class NewsServiceImpl {
         return newsPost;
     }
 
+    public List<NewsAddDto> fetchAllPopularNews() throws IOException {
+        List<NewsPost> newsPosts = newsRepository.findAllPopularNewsPosts();
+        return toNewsAddDtos.apply(newsPosts);
+    }
+
+    public List<NewsAddDto> fetchAllEntertainmentNews() throws IOException {
+        List<NewsPost> newsPosts = newsRepository.findAllEntertainmentNewsPosts();
+        return toNewsAddDtos.apply(newsPosts);
+    }
+
     public NewsAddDto fetchNewsWithId(String newsId){
         Optional<NewsPost> newsPost = newsRepository.findById(newsId);
         if (newsPost.isPresent()) {
@@ -154,15 +164,9 @@ public class NewsServiceImpl {
                         .collect(Collectors.toList());
                 newsAddDto.setImageUrl(base64Images);
             }
-
             newsAddDtoList.add(newsAddDto);
         }
         return newsAddDtoList;
-    }
-
-    public List<NewsAddDto> fetchAllPopularNews() throws IOException {
-        List<NewsPost> newsPosts = newsRepository.findAllPopularNewsPosts();
-        return toNewsAddDtos.apply(newsPosts);
     }
 
 
@@ -185,6 +189,7 @@ public class NewsServiceImpl {
         }
     }
 
+
     public String writeImage(MultipartFile image) throws IOException {
         if (image.getSize() != 0) {
             String imagePath = IMAGE_PATH + image.getOriginalFilename();
@@ -197,7 +202,6 @@ public class NewsServiceImpl {
     }
 
     public List<NewsAddDto> fetchNewsByCategoryName(String categoryName) throws NotActiveException {
-
         if(categoryName==null ||categoryName.isEmpty()){
             throw new NotActiveException("category");
         }
@@ -206,7 +210,9 @@ public class NewsServiceImpl {
             throw new NotActiveException("category");
         }
         List<NewsPost> newsPosts = newsRepository.findAll();
+
         List<NewsAddDto> newsAddDtoList = new ArrayList<>();
+
         for (NewsPost newsPost : newsPosts) {
             NewsAddDto newsAddDto = new NewsAddDto();
             newsAddDto.setPublishedDate(newsPost.getPublishedDate());
@@ -236,5 +242,19 @@ public class NewsServiceImpl {
             newsAddDtoList.add(newsAddDto);
         }
         return newsAddDtoList;
+
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Customized  local date time _______________:)"+LocalDateTime.now());
+        var dateTimeZone = "Europe/Warsaw";
+        var sinceDateTime = ZonedDateTime.now(ZoneId.of(dateTimeZone))
+                .minusDays(1)
+                .toLocalDateTime()
+                .withNano(0);
+        System.out.println("yesterday  local date time _______________:)"+sinceDateTime);
+        System.out.println("Customized  local date time _______________:)"+LocalDateTime.now().atZone(ZoneId.of(dateTimeZone)));
+        System.out.println("date time$ _______________:)"+ZonedDateTime.of(LocalDateTime.now(), ZoneId.of(dateTimeZone)).toLocalDateTime());
+        System.out.println("date time# _______________:)"+ZonedDateTime.now(ZoneId.of(dateTimeZone)).toLocalDateTime());
     }
 }

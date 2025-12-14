@@ -13,4 +13,6 @@ public final class Urls {
     public static final String NEWS_READ_ALL="public/api/news";
 
     public static final String NEWS_CATEGORIES="public/api/news/categories";
+
+    public static final String ENTERTAINMENT_NEWS_READ="public/api/entertainment/news";
 }

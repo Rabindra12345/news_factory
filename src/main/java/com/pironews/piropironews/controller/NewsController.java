@@ -53,6 +53,12 @@ public class NewsController {
         return news;
     }
 
+    @GetMapping(value=Urls.ENTERTAINMENT_NEWS_READ,produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<NewsAddDto> getAllEntertainmentNews() throws IOException {
+        List<NewsAddDto> news=newsService.fetchAllEntertainmentNews();
+        return news;
+    }
+
     @GetMapping(value=Urls.POPULAR_NEWS_READ,produces = MediaType.APPLICATION_JSON_VALUE)
     public List<NewsAddDto> getPopularNews() throws IOException {
         List<NewsAddDto> news=newsService.fetchAllPopularNews();
