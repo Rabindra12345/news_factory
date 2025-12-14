@@ -8,6 +8,7 @@ import com.pironews.piropironews.repositories.CategoryRepository;
 import com.pironews.piropironews.repositories.NewsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -32,13 +35,24 @@ public class NewsServiceImpl {
     @Autowired
     private NewsRepository newsRepository;
 
+    private final CategoryRepository categoryRepository;
+
+    List<Category> newsCategoryNames = new ArrayList<>();
+
     @Autowired
-    private CategoryRepository categoryRepository;
+    public NewsServiceImpl(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+        newsCategoryNames= this.categoryRepository.findAll();
+    }
+
+
+    @Value("${time.dateTimeZone}")
+    String dateTimeZone;
 
     @Transactional
-    public NewsPost addNews(String title,String textBody,String userId,List<String> newsCategories,List<MultipartFile> images,Integer category) throws IOException {
+    public NewsPost addNews(String title,String textBody,String userId,List<String> newsCategories,List<MultipartFile> images,List<Integer> categoryIds) throws IOException {
         NewsPost newsPost = new NewsPost();
-        var mayBeCategory = categoryRepository.findById(category);
+        var filteredNewsCategories = newsCategoryNames.stream().filter(newsCategory -> categoryIds.contains(newsCategory.getId())).collect(Collectors.toList());
         int viewsCount=0;
         String trimmed= "";
         newsPost.setTextTitle(title);
@@ -47,40 +61,31 @@ public class NewsServiceImpl {
         textBody=textBody.replaceAll("</p>"," ");
         textBody=textBody.replaceAll("<br>"," ");
         newsPost.setTextBody(textBody);
-        newsPost.setPublishedDate(LocalDateTime.now());
+        newsPost.setPublishedDate(ZonedDateTime.now(ZoneId.of(dateTimeZone)).toLocalDateTime());
         newsPost.setUserId(userId);
         List<Image> imageList = new ArrayList<>();
         newsPost.setNewsId(UUID.randomUUID().toString());
         if(images!=null){
             for(MultipartFile image: images){
-//                var news = new NewsPost();
-//                news.setNewsId(String.valueOf(newsId+1));
                 Image imageObj= new Image();
                 imageObj.setImageUrl(writeImage(image));
                 imageObj.setPost(newsPost);
                 imageList.add(imageObj);
-//                writeImage(image);
             }
         }
         newsPost.setImages(imageList);
-        var filteredCatList = new ArrayList<Category>();
-        if(newsCategories!=null){
-            for(String newsCategory: newsCategories){
-                Optional<Category> getCategory =categoryRepository.getCategoryByName(newsCategory);
-                if(getCategory.isEmpty()){
-                    Category cat = new Category();
-                    cat.setName(newsCategory);
-                    filteredCatList.add(cat);
-                }
-            }
-        }
-//        category.setName(newsCategory);
-
-        if(filteredCatList!=null&&filteredCatList.size()>0){
-            newsPost.setNewsCategory(filteredCatList);
+        if (filteredNewsCategories != null && !filteredNewsCategories.isEmpty()) {
+            List<Integer> ids = filteredNewsCategories.stream()
+                    .map(Category::getId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            List<Category> managedCats = categoryRepository.findAllById(ids);
+            newsPost.setNewsCategory(managedCats);
+        } else {
+            newsPost.setNewsCategory(Collections.emptyList());
         }
         newsPost.setViewsCount(++viewsCount);
-        newsPost.setCategory(mayBeCategory.get().getName());
         NewsPost savedNews = newsRepository.save(newsPost);
         return newsPost;
     }
@@ -114,10 +119,15 @@ public class NewsServiceImpl {
         return newsAddDto;
     };
 
+    Function<List<NewsPost>,List<NewsAddDto>> toNewsAddDtos = newsPosts ->{
+        return newsPosts.stream()
+                .map(newsPost -> toNewsAddDto.apply(newsPost))
+                .collect(Collectors.toList());
+    };
+
     public List<NewsAddDto> fetchAllNews() throws IOException {
         List<NewsPost> newsPosts = newsRepository.findAllByPublishedDateDesc();
         List<NewsAddDto> newsAddDtoList = new ArrayList<>();
-
         for (NewsPost newsPost : newsPosts) {
             NewsAddDto newsAddDto = new NewsAddDto();
             newsAddDto.setPublishedDate(newsPost.getPublishedDate());
@@ -142,14 +152,17 @@ public class NewsServiceImpl {
                         })
                         .filter(image -> image != null)
                         .collect(Collectors.toList());
-
-//                newsAddDto.setImageUrls(base64Images);
                 newsAddDto.setImageUrl(base64Images);
             }
 
             newsAddDtoList.add(newsAddDto);
         }
         return newsAddDtoList;
+    }
+
+    public List<NewsAddDto> fetchAllPopularNews() throws IOException {
+        List<NewsPost> newsPosts = newsRepository.findAllPopularNewsPosts();
+        return toNewsAddDtos.apply(newsPosts);
     }
 
 
@@ -172,11 +185,9 @@ public class NewsServiceImpl {
         }
     }
 
-
     public String writeImage(MultipartFile image) throws IOException {
         if (image.getSize() != 0) {
             String imagePath = IMAGE_PATH + image.getOriginalFilename();
-            System.out.println("Writing image__________________________ : " +imagePath);
             try (InputStream inputStream = image.getInputStream()) {
                 Files.copy(inputStream, Paths.get(imagePath), StandardCopyOption.REPLACE_EXISTING);
             }
@@ -195,9 +206,7 @@ public class NewsServiceImpl {
             throw new NotActiveException("category");
         }
         List<NewsPost> newsPosts = newsRepository.findAll();
-
         List<NewsAddDto> newsAddDtoList = new ArrayList<>();
-
         for (NewsPost newsPost : newsPosts) {
             NewsAddDto newsAddDto = new NewsAddDto();
             newsAddDto.setPublishedDate(newsPost.getPublishedDate());
@@ -222,14 +231,10 @@ public class NewsServiceImpl {
                         })
                         .filter(image -> image != null)
                         .collect(Collectors.toList());
-
-//                newsAddDto.setImageUrls(base64Images);
                 newsAddDto.setImageUrl(base64Images);
             }
-
             newsAddDtoList.add(newsAddDto);
         }
         return newsAddDtoList;
-
     }
 }

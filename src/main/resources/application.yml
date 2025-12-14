@@ -1,11 +1,14 @@
 server:
-  port: ${PORT:8081}
+  port: ${PORT:8080}
 
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/news_blog}
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:password}
+
+time:
+  dateTimeZone: ${TIME_DATE_TIME_ZONE:Asia/Kathmandu}
 
   jpa:
     hibernate:

@@ -31,8 +31,8 @@ public class NewsController {
             @RequestParam("textBody") String textBody,
             @RequestParam("userId") String userId,
             @RequestParam(value = "newsCategories",required = false) List<String> newsCategories,
-            @RequestParam(value = "textImages",required = false) List<MultipartFile> textImages,@RequestParam("categoryId") Integer category) throws IOException {
-        NewsPost news=newsService.addNews(title, textBody, userId,newsCategories, textImages, category);
+            @RequestParam(value = "textImages",required = false) List<MultipartFile> textImages,@RequestParam("categoryIds") List<Integer> categoryIds) throws IOException {
+        NewsPost news=newsService.addNews(title, textBody, userId,newsCategories, textImages, categoryIds);
         return ResponseEntity.ok("Form submitted successfully");
     }
 
@@ -50,6 +50,12 @@ public class NewsController {
     @GetMapping(value=Urls.NEWS_READ_ALL,produces = MediaType.APPLICATION_JSON_VALUE)
     public List<NewsAddDto> getAllNews() throws IOException {
         List<NewsAddDto> news=newsService.fetchAllNews();
+        return news;
+    }
+
+    @GetMapping(value=Urls.POPULAR_NEWS_READ,produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<NewsAddDto> getPopularNews() throws IOException {
+        List<NewsAddDto> news=newsService.fetchAllPopularNews();
         return news;
     }
 

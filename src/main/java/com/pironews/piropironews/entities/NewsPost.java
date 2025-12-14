@@ -32,14 +32,15 @@ public class NewsPost {
 
     private Integer viewsCount;
 
+    @ManyToMany
     @JoinTable(
-         name="news_category",
-        joinColumns =  @JoinColumn(name="news_id"),
-        inverseJoinColumns =@JoinColumn(name="category_id")
+            name = "news_category",
+            joinColumns = @JoinColumn(name = "news_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    @ManyToMany(cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Category> newsCategory;
+
 
     //news and user relationship
 

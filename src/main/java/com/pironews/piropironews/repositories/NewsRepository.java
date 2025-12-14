@@ -21,6 +21,18 @@ public interface NewsRepository extends JpaRepository<NewsPost,String> {
     @Query("SELECT n FROM NewsPost n ORDER BY n.publishedDate DESC")
     List<NewsPost> findAllByPublishedDateDesc();
 
+    @Query(value = """
+    SELECT np.*
+    FROM news_post np
+    WHERE np.published_date >= NOW() - INTERVAL '1 day'
+    ORDER BY (
+        LOG10(1 + np.views_count) /
+        (1 + (EXTRACT(EPOCH FROM (NOW() - np.published_date)) / 3600) / 24)
+    ) DESC
+    LIMIT 5
+    """, nativeQuery = true)
+    List<NewsPost> findAllPopularNewsPosts();
+
     @Modifying
     @Transactional
     @Query("UPDATE NewsPost n SET n.viewsCount = n.viewsCount + 1 WHERE n.newsId=:newsId")
