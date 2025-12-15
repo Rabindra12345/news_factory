@@ -108,7 +108,7 @@ public class AuthController {
                 .expiryDate(LocalDateTime.now().plusMinutes(2))
                 .build();
         this.refreshTokenRepository.save(toBeSavedRefreshToken);
-        if(refreshTokenService.verifyExpiration(refreshTokenInstance)){
+        if(refreshTokenService.verifyExpiration(toBeSavedRefreshToken)){
             String newAccessToken = jwtUtils.generateJwtTokenWithUserInfo(refreshTokenInstance.getUserInfo());
             return ResponseEntity.ok(JwtResponse.builder()
                     .accessToken(newAccessToken)

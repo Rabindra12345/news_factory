@@ -86,6 +86,7 @@ public class UserServiceImpl {
                     .orElseGet(() -> roleRepository.save(new Role(role.getName())));
             rolesToSet.add(existingRole);
         }
+
         user.setRoles(rolesToSet);
         userRepository.save(user);
         return user;

@@ -44,7 +44,7 @@ public interface NewsRepository extends JpaRepository<NewsPost,String> {
     SELECT np.*
     FROM news_post np
     JOIN entertained_posts ep ON ep.news_id = np.news_id
-    order by np.published_date desc LIMIT 5
+    order by np.published_date desc LIMIT 6
     """, nativeQuery = true)
     List<NewsPost> findAllEntertainmentNewsPosts();
 

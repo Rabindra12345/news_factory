@@ -89,7 +89,7 @@ public class RefreshTokenService {
 
     public boolean verifyExpiration(RefreshToken token){
         if(token.getExpiryDate().isBefore(LocalDateTime.now())){
-            refreshTokenRepository.delete(token);
+//            refreshTokenRepository.delete(token);
             throw new RuntimeException(token.getToken() + " Refresh token is expired. Please make a new login..!");
         }
         return true;
