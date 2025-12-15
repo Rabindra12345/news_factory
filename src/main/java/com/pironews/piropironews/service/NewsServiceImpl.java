@@ -68,7 +68,7 @@ public class NewsServiceImpl {
         if(images!=null){
             for(MultipartFile image: images){
                 Image imageObj= new Image();
-                imageObj.setImageUrl(writeImage(image));
+                imageObj.setImageUrl(toString(rawBytes(image)));
                 imageObj.setPost(newsPost);
                 imageList.add(imageObj);
             }
@@ -117,12 +117,8 @@ public class NewsServiceImpl {
         newsAddDto.setTextBody(newsPost.getTextBody());
         newsAddDto.setTextTitle(newsPost.getTextTitle());
         newsAddDto.setImageUrl(newsPost.getImages().stream().map(image ->{
-            try {
-                String b64 = convertToBase64(readImageBytes(image.getImageUrl()));
+                String b64 = (image.getImageUrl());
                 return "data:image/jpeg;base64," + b64;
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to read image: " + image.getImageUrl(), e);
-            }
         }).toList());
         newsAddDto.setUserId(newsPost.getUserId());
         newsAddDto.setNewsId(newsPost.getNewsId());
@@ -148,16 +144,12 @@ public class NewsServiceImpl {
             if (newsPost.getImages() != null) {
                 List<String> base64Images = newsPost.getImages().stream()
                         .map(image -> {
-                            try {
-                                byte[] imageBytes = readImageBytes(image.getImageUrl());
-                                if (imageBytes.length > 0) {
-                                    return "data:image/jpeg;base64," + convertToBase64(imageBytes);
+                            var imageBytes = (image.getImageUrl());
+                            if (imageBytes!=null&& !imageBytes.isBlank()) {
+                                    return "data:image/jpeg;base64," + imageBytes;
                                 } else {
-                                    System.err.println("Failed to read image: " + image.getImageUrl());
+                                    System.err.println("Failed to read image: " +image.getImageUrl());
                                 }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
                             return null;
                         })
                         .filter(image -> image != null)
@@ -167,38 +159,6 @@ public class NewsServiceImpl {
             newsAddDtoList.add(newsAddDto);
         }
         return newsAddDtoList;
-    }
-
-
-    public String convertToBase64(byte[] imageBytes) {
-        return Base64.getEncoder().encodeToString(imageBytes);
-    }
-
-    public static byte[] readImageBytes(String imagePath) throws IOException {
-        Path path = Paths.get(imagePath);
-        if (!Files.exists(path)) {
-            System.err.println("File not found: " + imagePath);
-            return new byte[0];
-        }
-        try {
-            System.out.println("Reading image: " + Files.readAllBytes(path).toString());
-            return Files.readAllBytes(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
-
-    public String writeImage(MultipartFile image) throws IOException {
-        if (image.getSize() != 0) {
-            String imagePath = IMAGE_PATH + image.getOriginalFilename();
-            try (InputStream inputStream = image.getInputStream()) {
-                Files.copy(inputStream, Paths.get(imagePath), StandardCopyOption.REPLACE_EXISTING);
-            }
-            return imagePath;
-        }
-        return "";
     }
 
     public List<NewsAddDto> fetchNewsByCategoryName(String categoryName) throws NotActiveException {
@@ -219,20 +179,15 @@ public class NewsServiceImpl {
             newsAddDto.setTextBody(newsPost.getTextBody());
             newsAddDto.setTextTitle(newsPost.getTextTitle());
             newsAddDto.setUserId(newsPost.getUserId());
-
             if (newsPost.getImages() != null) {
                 List<String> base64Images = newsPost.getImages().stream()
                         .map(image -> {
-                            try {
-                                byte[] imageBytes = readImageBytes(image.getImageUrl());
-                                if (imageBytes.length > 0) {
-                                    return "data:image/jpeg;base64," + convertToBase64(imageBytes);
+                                var imageBytes = (image.getImageUrl());
+                                if (imageBytes!=null&& !imageBytes.isBlank()) {
+                                    return "data:image/jpeg;base64," + imageBytes;
                                 } else {
                                     System.err.println("Failed to read image: " + image.getImageUrl());
                                 }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
                             return null;
                         })
                         .filter(image -> image != null)
@@ -243,6 +198,14 @@ public class NewsServiceImpl {
         }
         return newsAddDtoList;
 
+    }
+
+    public static byte[] rawBytes(MultipartFile file) throws IOException {
+        return file.getBytes();
+    }
+
+    public static String toString(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     public static void main(String[] args) {
