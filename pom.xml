@@ -11,7 +11,8 @@
 	<groupId>com.pironews</groupId>
 	<artifactId>piropironews</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>piropironews</name>
+    <packaging>pom</packaging>
+    <name>piropironews</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -20,7 +21,7 @@
 	<developers>
 		<developer/>
 	</developers>
-	<scm>
+    <scm>
 		<connection/>
 		<developerConnection/>
 		<tag/>

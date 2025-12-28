@@ -1,0 +1,36 @@
+server:
+  port: ${PORT:8081}
+  origin:
+    url: ${ORIGIN_URL:http://localhost:3000}
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    show-sql: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/news_blog}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+
+time:
+  dateTimeZone: ${TIME_DATE_TIME_ZONE:Asia/Kathmandu}
+
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  security:
+    user:
+      name: ${SPRING_SECURITY_USER_NAME:admin}
+      password: ${SPRING_SECURITY_USER_PASSWORD:admin@321!^*#}
+      roles: ADMIN
+
+baldur:
+  app:
+    jwtSecret: ${JWT_SECRET:======================rabindra=Spring===========================}
+    jwtExpirationMs: ${JWT_EXPIRATION_MS:32000}
