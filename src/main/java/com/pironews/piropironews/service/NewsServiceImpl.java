@@ -78,7 +78,6 @@ public class NewsServiceImpl {
         } else {
             newsPost.setNewsCategory(Collections.emptyList());
         }
-        System.out.println("TAGS ____________________:)"+tags);
         if(tags!=null&&!tags.isEmpty()){
             newsPost.setTags(new HashSet<>(tags));
         }
