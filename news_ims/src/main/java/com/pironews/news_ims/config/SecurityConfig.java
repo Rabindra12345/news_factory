@@ -67,12 +67,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http.cors(
-                        cors -> {}) // ✅ enable CORS in the security chain
+                        cors -> {}) // enable CORS in the security chain
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ allow preflight
+                        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // allow preflight
                                 .requestMatchers(
                                         "/api/auth/**","/public/**"
                                 ).permitAll()
