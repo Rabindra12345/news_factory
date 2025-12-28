@@ -7,11 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 @ExtendWith(MockitoExtension.class)
 public class NewsServiceImplTests {
 
@@ -19,15 +14,6 @@ public class NewsServiceImplTests {
     @InjectMocks
     private NewsServiceImpl newsService;
 
-    @Test
-    @DisplayName("reading from image success test case.")
-    public void testReadFromPathAndConvertToBytes() throws IOException {
-        String path = "/home/rabindra-jar/Pictures/rabindra.png";
-        byte[] bytes = newsService.readImageBytes(path);
-
-        System.out.println("Read from image __ "+ Arrays.toString(bytes));
-
-    }
 
     @Test
     @DisplayName("pruning leading and trailing tag and spaces")

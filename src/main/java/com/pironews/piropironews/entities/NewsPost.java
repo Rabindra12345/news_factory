@@ -6,13 +6,16 @@ import com.pironews.piropironews.model.Category;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name="news_post")
 public class NewsPost {
 
     @Id
+    @Column(name="news_id")
     private String newsId;
 
     private String userId;
@@ -41,13 +44,19 @@ public class NewsPost {
     @JsonManagedReference
     private List<Category> newsCategory;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "news_post_tags",
+            joinColumns = @JoinColumn(name = "news_id", referencedColumnName = "news_id")
+    )
+    @Column(name = "tag")
+    private Set<String> tags = new LinkedHashSet<>();
 
-    //news and user relationship
 
     public NewsPost() {
     }
 
-    public NewsPost(LocalDateTime publishedDate, String textTitle, String textBody, String userId, String newsId,String category,Integer viewsCount) {
+    public NewsPost(LocalDateTime publishedDate, String textTitle, String textBody, String userId, String newsId,String category,Integer viewsCount,Set<String>tags) {
         this.publishedDate = publishedDate;
         this.textTitle = textTitle;
 //        this.imageUrl = imageUrl;
@@ -56,6 +65,7 @@ public class NewsPost {
         this.newsId = newsId;
         this.category = category;
         this.viewsCount = viewsCount;
+        this.tags=tags;
     }
 
     @Override
@@ -141,5 +151,13 @@ public class NewsPost {
 
     public void setViewsCount(Integer viewsCount) {
         this.viewsCount = viewsCount;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 }

@@ -13,12 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.NotActiveException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -29,8 +24,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class NewsServiceImpl {
-
-    public final static String IMAGE_PATH="/home/ct/Pictures/newsBlog/";
 
     @Autowired
     private NewsRepository newsRepository;
@@ -50,7 +43,7 @@ public class NewsServiceImpl {
     String dateTimeZone;
 
     @Transactional
-    public NewsPost addNews(String title,String textBody,String userId,List<String> newsCategories,List<MultipartFile> images,List<Integer> categoryIds) throws IOException {
+    public NewsPost addNews(String title,String textBody,String userId,List<String> newsCategories,List<MultipartFile> images,List<Integer> categoryIds,List<String> tags) throws IOException {
         NewsPost newsPost = new NewsPost();
         var filteredNewsCategories = newsCategoryNames.stream().filter(newsCategory -> categoryIds.contains(newsCategory.getId())).collect(Collectors.toList());
         int viewsCount=0;
@@ -85,6 +78,10 @@ public class NewsServiceImpl {
         } else {
             newsPost.setNewsCategory(Collections.emptyList());
         }
+        System.out.println("TAGS ____________________:)"+tags);
+        if(tags!=null&&!tags.isEmpty()){
+            newsPost.setTags(new HashSet<>(tags));
+        }
         newsPost.setViewsCount(++viewsCount);
         NewsPost savedNews = newsRepository.save(newsPost);
         return newsPost;
@@ -117,8 +114,8 @@ public class NewsServiceImpl {
         newsAddDto.setTextBody(newsPost.getTextBody());
         newsAddDto.setTextTitle(newsPost.getTextTitle());
         newsAddDto.setImageUrl(newsPost.getImages().stream().map(image ->{
-                String b64 = (image.getImageUrl());
-                return "data:image/jpeg;base64," + b64;
+            String b64 = (image.getImageUrl());
+            return "data:image/jpeg;base64," + b64;
         }).toList());
         newsAddDto.setUserId(newsPost.getUserId());
         newsAddDto.setNewsId(newsPost.getNewsId());
@@ -146,10 +143,10 @@ public class NewsServiceImpl {
                         .map(image -> {
                             var imageBytes = (image.getImageUrl());
                             if (imageBytes!=null&& !imageBytes.isBlank()) {
-                                    return "data:image/jpeg;base64," + imageBytes;
-                                } else {
-                                    System.err.println("Failed to read image: " +image.getImageUrl());
-                                }
+                                return "data:image/jpeg;base64," + imageBytes;
+                            } else {
+                                System.err.println("Failed to read image: " +image.getImageUrl());
+                            }
                             return null;
                         })
                         .filter(image -> image != null)
@@ -182,12 +179,12 @@ public class NewsServiceImpl {
             if (newsPost.getImages() != null) {
                 List<String> base64Images = newsPost.getImages().stream()
                         .map(image -> {
-                                var imageBytes = (image.getImageUrl());
-                                if (imageBytes!=null&& !imageBytes.isBlank()) {
-                                    return "data:image/jpeg;base64," + imageBytes;
-                                } else {
-                                    System.err.println("Failed to read image: " + image.getImageUrl());
-                                }
+                            var imageBytes = (image.getImageUrl());
+                            if (imageBytes!=null&& !imageBytes.isBlank()) {
+                                return "data:image/jpeg;base64," + imageBytes;
+                            } else {
+                                System.err.println("Failed to read image: " + image.getImageUrl());
+                            }
                             return null;
                         })
                         .filter(image -> image != null)

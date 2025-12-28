@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 public class NewsController {
 
-
     @Autowired
     private NewsServiceImpl newsService;
 
@@ -31,8 +30,9 @@ public class NewsController {
             @RequestParam("textBody") String textBody,
             @RequestParam("userId") String userId,
             @RequestParam(value = "newsCategories",required = false) List<String> newsCategories,
+            @RequestParam(value = "tags",required = false) List<String> newsTags,
             @RequestParam(value = "textImages",required = false) List<MultipartFile> textImages,@RequestParam("categoryIds") List<Integer> categoryIds) throws IOException {
-        NewsPost news=newsService.addNews(title, textBody, userId,newsCategories, textImages, categoryIds);
+        NewsPost news=newsService.addNews(title, textBody, userId,newsCategories, textImages, categoryIds,newsTags);
         return ResponseEntity.ok("Form submitted successfully");
     }
 
