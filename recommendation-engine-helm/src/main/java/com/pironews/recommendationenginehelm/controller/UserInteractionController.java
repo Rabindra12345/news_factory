@@ -65,7 +65,6 @@ public class UserInteractionController {
     @PostMapping("/read-duration")
     public ResponseEntity<Map<String, Object>> trackReadDuration(
             @RequestBody Map<String, Object> payload) {
-
         try {
             String newsId = (String) payload.get("newsId");
             String sessionId = (String) payload.get("sessionId");
@@ -103,14 +102,11 @@ public class UserInteractionController {
     public ResponseEntity<List<UserInteraction>> getInteractionHistory(
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String sessionId) {
-
         if (userId == null && sessionId == null) {
             return ResponseEntity.badRequest().build();
         }
-
         List<UserInteraction> history = userInteractionService
                 .getUserInteractionHistory(userId, sessionId);
-
         return ResponseEntity.ok(history);
     }
 
@@ -143,14 +139,11 @@ public class UserInteractionController {
             @RequestParam String newsId,
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String sessionId) {
-
         if (sessionId == null && userId == null) {
             return ResponseEntity.badRequest().build();
         }
-
         boolean hasViewed = userInteractionService
                 .hasUserViewedNews(userId, sessionId, newsId);
-
         return ResponseEntity.ok(Map.of("hasViewed", hasViewed));
     }
 }

@@ -22,9 +22,6 @@ public class NewsPost {
     @Column(name = "text_body", columnDefinition = "VARCHAR(10000)")
     private String textBody;
 
-
-
-
     private String textTitle;
 
     private LocalDateTime publishedDate;
