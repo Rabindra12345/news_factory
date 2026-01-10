@@ -3,12 +3,19 @@ server:
   origin:
     url: ${ORIGIN_URL:http://localhost:3000}
 
+
 spring:
   jpa:
     hibernate:
-      ddl-auto: update
-    generate-ddl: true
+      ddl-auto: none
     show-sql: true
+    defer-datasource-initialization: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/news_blog}
     username: ${SPRING_DATASOURCE_USERNAME:root}
