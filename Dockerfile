@@ -2,7 +2,7 @@ FROM amazoncorretto:17-alpine
 
 WORKDIR /app
 
-COPY target/*.jar app.jar
+COPY /home/rabindra-jar/demoapp/news_factory/news_ims/target app.jar
 
 EXPOSE 8080
 
